@@ -1,0 +1,229 @@
+\documentclass[11pt]{beamer}
+\usepackage{latexsym}
+\usepackage{wasysym}
+\usepackage{algpseudocode}
+\usepackage{algorithm2e}
+\usepackage{breqn}
+%\usefonttheme{serif} % default family is serif
+%\usepackage{fontspec}
+%\setmainfont{Liberation Serif}
+
+
+\mode<presentation>
+\usefonttheme{professionalfonts}
+\usetheme{Frankfurt}
+%\usetheme{Warsaw}
+%\usetheme{Darmstadt}
+%\usecolortheme{whale}
+
+
+\title{linear models notes}
+%\author[Prashant]{prashant ullegaddi %\\ 
+%%\texttt{prashant.ullegaddi@research.iiit.ac.in}  
+%}
+%   \href{mailto:prashant.ullegaddi@research.iiit.ac.in}{\texttt{prashant.ullegaddi@research.iiit.ac.in}}}
+\begin{document}
+\begin{frame}
+%	\date{\today}
+	\titlepage
+\end{frame}
+
+
+\section{Linear Regression}
+\subsection{problem}
+\begin{frame}
+	\frametitle{\textbf{linear regression}}
+	\begin{block}{What's the problem?}
+	\begin{itemize}
+		\item Given a set of $m$ training examples $\{X^{(i)}, y^{(i)}\}_{i=1}^m$ 
+		where $X^{(i)} \in \mathbb{R}^{n+1}$
+		with $X^{(i)}_0 = 1$ and $y^{(i)} \in \mathbb{R}$.
+		\item Learn a hypothesis function $h(\cdot)$ such that for any new test example $x^{(t)}$, $y$ can be predicted as 
+		$y^{(t)} = h(x^{(t)})$.
+		\item Fit a hyperplane $h_\theta(x) = \theta_0 + \theta_1 x_1 + \cdots + \theta_n x_n = \sum_{i=0}^n \theta_i x_i = \theta^T x$
+	\end{itemize}
+	\end{block}
+\end{frame}
+
+\subsection{ordinary-gradient method}
+\begin{frame}
+	\frametitle{ordinary least squares method}
+	\begin{block}{Optimization}
+	Find parameters $\theta$ that:
+	\begin{equation*}	
+		\textrm{minimize}_\theta J(\theta) = \frac{1}{2} \sum_{i=1}^{m} (h_\theta (X^{(i)}) - y^{(i)})^2
+	\end{equation*} 
+   	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{gradient descent method}
+	\begin{block}{Update rule}
+     	\begin{equation*}
+		\theta := \theta - \alpha \nabla_\theta J(\theta)
+	\end{equation*}
+	\indent where $\alpha$ is the learning rate, 
+	$\nabla_\theta J(\theta)$ is the gradient of cost function $J(\theta)$.
+   	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{derivation of gradient} 
+	\begin{align*} 
+	 J(\theta) &= \frac{1}{2} \sum_{i=1}^{m} (h_\theta (X^{(i)}) - y^{(i)})^2 \\
+	\frac{\partial}{\partial \theta_j} J(\theta) &= \sum_{i=1}^{m} (h_\theta (X^{(i)}) - y^{(i)}) \frac{\partial}{\partial \theta_j} (\theta^T X^{(i)} - y^{(i)})
+	\end{align*}
+	\begin{block}{Gradient}
+	\begin{align*}
+	\frac{\partial}{\partial \theta_j} J(\theta) &= \sum_{i=1}^{m} (h_\theta (X^{(i)}) - y^{(i)}) X^{(i)}_j \\ 
+	\nabla_\theta J(\theta)  &= 	\begin{bmatrix}
+	\frac{\partial}{\partial \theta_0} J(\theta) & \frac{\partial}{\partial \theta_1} J(\theta)  & \cdots & \frac{\partial}{\partial \theta_n} J(\theta) 
+								\end{bmatrix}^{T}
+	\end{align*}
+	\end{block}
+\end{frame}
+
+\subsection{stochastic gradient}
+\begin{frame}
+	\frametitle{stochastic gradient method}
+	
+\begin{algorithm}[H]
+ 	\SetAlgoLined
+ 	\KwData{$\alpha$, $m$ training examples $\{X^{(i)}, y^{(i)}\}_{i=1}^m$} 
+	\KwResult{$\theta$ parameters}
+	$\theta := \mathbf{0}$ \;
+	\For{$i = 1 \cdots m$} {
+		\For{$j = 0 \cdots n$} {
+			$\theta := \theta - \alpha (h_\theta (X^{(i)}) - y^{(i)}) X^{(i)}_j$  \;
+		}
+	}
+ \caption{Stochastic gradient algorithm}
+\end{algorithm}
+	
+\end{frame}
+
+\subsection{closed form solution}
+\begin{frame}
+	\frametitle{closed form: add derivation involving trace}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{closed form solution}
+	\begin{block}{Solution}
+	\begin{equation*}	
+		\theta = (X^T X)^{-1} X^T y 
+	\end{equation*} 
+
+	where $X$ is an $m \times (n+1)$ data matrix with $X[:,1] = 1$ and $y$ is a $m \times 1$ vector of labels
+   	\end{block}
+\end{frame}
+
+\section{Logistic Regression}
+\subsection{what it is}
+\begin{frame}
+	\frametitle{\textbf{logistic regression}}
+	
+	\begin{block}{What's the problem?}
+	\begin{itemize}
+		\item Given a set of $m$ training examples $\{X^{(i)}, y^{(i)}\}_{i=1}^m$ 
+		where $X^{(i)} \in \mathbb{R}^{n+1}$
+		with $X^{(i)}_0 = 1$ and $y^{(i)} \in \{0, 1\}$ is a label.
+		\item Learn a hypothesis function $h(\cdot)$ such that for any new test example $x^{(t)}$, label for it can be predicted as 
+		$y^{(t)} = h(x^{(t)})$.
+		\item In logistic regression, we assume:
+		\begin{equation*}
+		h(x) = \textrm{sigmoid}(\theta^T x) = \frac{1}{1 + e^{-\theta^T x}}
+		\end{equation*}
+	\end{itemize}
+	\end{block}
+\end{frame}
+
+\subsection{sigmoid}
+\begin{frame}
+	\frametitle{property of sigmoid function}
+	\begin{align*}
+	\textrm{Let } g(x) &= \frac{1}{1+e^{-x}} \\
+	\textrm{Then, } g'(x) &= -\frac{1}{(1+e^{-x})^2}\frac{d}{dx}(1+e^{-x})\\
+		 &= \frac{e^{-x}}{(1+e^{-x})^2} \\
+		&= \left(\frac{1}{1+e^{-x}}\right) \left(\frac{e^{-x}}{1+e^{-x}}\right) \\
+		&= \left(\frac{1}{1+e^{-x}}\right) \left(1 - \frac{1}{1+e^{-x}}\right) 
+	\end{align*}
+\vspace{-10pt}
+	\begin{block}{Thus,}
+	\begin{equation}
+	\label{eq:sigmoid_derivative}
+	g'(x) = g(x) (1-g(x))
+	\end{equation}
+	\end{block}
+\end{frame}
+
+\subsection{how}
+\begin{frame}
+	\frametitle{optimization---maximize likelihood of the parameters $\theta$}
+		Assume  
+		\begin{align*}
+		p(y=1|x; \theta) &= h_\theta(x)\\
+		p(y=0|x; \theta) &= 1-h_\theta(x) \\
+		\textrm{or more generally}\\
+		p(y|x; \theta) &= (h_\theta(x))^y (1-h_\theta(x))^{(1-y)}
+		\end{align*}
+
+		\begin{block}{Likelihood of parameters}
+		\begin{align*}
+			L(\theta) &= p(\mathbf{y} | X; \theta) = \prod_{i=1}^{m} p(y^{(i)} | X^{(i)}; \theta) \\
+					 &= \prod_{i=1}^{m} (h_\theta(X^{(i)}))^{y^{(i)}} (1-h_\theta(X^{(i)}))^{(1-y^{(i)})}
+		\end{align*}
+		\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{or equivalently maximize loglikelihood of the parameters $\theta$}
+	It's easier to maximize loglikelihood $\log(L(\theta))$ which is the same as maximizing likelihood $L(\theta)$
+		\begin{block}{Optimization}
+		\begin{align*}
+			l(\theta) &= \log{L(\theta)} \\
+					 &= \sum_{i=1}^{m} [y^{(i)} \log{h_\theta(X^{(i)})} + (1-y^{(i)}) \log{(1-h_\theta(X^{(i)}))}] \\
+			& \max_\theta l(\theta)
+		\end{align*}
+		\end{block}
+
+		\begin{block}{Gradient ascent}
+		Update rule:
+		\begin{align*}
+			\theta := \theta + \alpha \nabla_\theta l(\theta)
+		\end{align*}
+		\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{derivation of gradient of $l(\theta)$}
+	\begin{align*}
+	\frac{\partial}{\partial \theta_j} l(\theta) &= \sum_{i=1}^{m} [y^{(i)} \log{h_\theta(X^{(i)})} + (1-y^{(i)}) \log{(1-h_\theta(X^{(i)}))}] \\
+			&= \sum_{i=1}^{m} [y^{(i)} \frac{1}{h_\theta(X^{(i)})} \frac{\partial}{\partial \theta_j} h_\theta(X^{(i)}) \\
+			&+ (1-y^{(i)}) \frac{1}{(1-h_\theta(X^{(i)}))} \frac{\partial}{\partial \theta_j} (1-h_\theta(X^{(i)})) ] \\
+			&= \sum_{i=1}^{m} [y^{(i)} \frac{1}{h_\theta(X^{(i)})}  h'_\theta(X^{(i)}) \frac{\partial}{\partial \theta_j}\theta^T X^{(i)} \\
+			&+ (1-y^{(i)}) \frac{1}{(1-h_\theta(X^{(i)}))}  (-h'_\theta(X^{(i)})) \frac{\partial}{\partial \theta_j} \theta^T X^{(i)} ]
+	\end{align*}
+\end{frame}
+
+\begin{frame}
+	\frametitle{derivation of gradient of $l(\theta)$}
+	\begin{center}
+	\begin{align*}
+	\noindent \textrm{Using Eq. \ref{eq:sigmoid_derivative}, } \\
+	\scriptstyle \frac{\partial}{\partial \theta_j} l(\theta) 
+		 &= \scriptstyle \sum_{i=1}^{m} [y^{(i)} \frac{1}{h_\theta(X^{(i)})}  h_\theta(X^{(i)}) (1-h_\theta( X^{(i)}) \frac{\partial}{\partial \theta_j}\theta^T X^{(i)} \\
+	\scriptstyle	&+\scriptstyle (1-y^{(i)}) \frac{1}{(1-h_\theta(X^{(i)}))}  (-h_\theta(X^{(i)}) (1-h_\theta(X^{(i)}))) \frac{\partial}{\partial \theta_j} \theta^T X^{(i)} ] \\
+	\scriptstyle	&= \scriptstyle \sum_{i=1}^{m} [y^{(i)}  (1-h_\theta( X^{(i)}) X^{(i)}_j + (1-y^{(i)})  (-h_\theta(X^{(i)})  X^{(i)}_j ]	
+		%&= \sum_{i=1}^{m} (y^{(i)} -h_\theta(X^{(i)}))  X^{(i)}_j 
+	\end{align*} \vspace{-20pt}
+	\begin{block}{Derviative}
+	\begin{equation*}
+		\frac{\partial}{\partial \theta_j} l(\theta) = \sum_{i=1}^{m} (y^{(i)} -h_\theta(X^{(i)}))  X^{(i)}_j 
+	\end{equation*}
+	\end{block}
+	\end{center}
+\end{frame}
+
+\end{document}
