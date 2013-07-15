@@ -23,7 +23,7 @@
 %   \href{mailto:prashant.ullegaddi@research.iiit.ac.in}{\texttt{prashant.ullegaddi@research.iiit.ac.in}}}
 \begin{document}
 \begin{frame}
-%	\date{\today}
+	\date{}
 	\titlepage
 \end{frame}
 
@@ -89,11 +89,11 @@
 \begin{algorithm}[H]
  	\SetAlgoLined
  	\KwData{$\alpha$, $m$ training examples $\{X^{(i)}, y^{(i)}\}_{i=1}^m$} 
-	\KwResult{$\theta$ parameters}
+	\KwResult{$\theta[0 \cdots n]$ parameters}
 	$\theta := \mathbf{0}$ \;
 	\For{$i = 1 \cdots m$} {
 		\For{$j = 0 \cdots n$} {
-			$\theta := \theta - \alpha (h_\theta (X^{(i)}) - y^{(i)}) X^{(i)}_j$  \;
+			$\theta_j := \theta_j - \alpha (h_\theta (X^{(i)}) - y^{(i)}) X^{(i)}_j$  \;
 		}
 	}
  \caption{Stochastic gradient algorithm}
@@ -116,6 +116,10 @@
 
 	where $X$ is an $m \times (n+1)$ data matrix with $X[:,1] = 1$ and $y$ is a $m \times 1$ vector of labels
    	\end{block}
+\end{frame}
+
+\begin{frame}
+	\frametitle{locally weighted linear regression}
 \end{frame}
 
 \section{Logistic Regression}
@@ -223,6 +227,17 @@
 	\end{equation*}
 	\end{block}
 	\end{center}
+\end{frame}
+
+
+\section{Generalized Linear Models}
+\begin{frame}
+	\frametitle{Exponential family of distributions}
+	\begin{block}{form}
+	\begin{equation*}
+	p(y;\eta) = b(y) \exp{(\eta^T T(y) - a(\eta))}
+	\end{equation*}
+	\end{block}
 \end{frame}
 
 \end{document}
