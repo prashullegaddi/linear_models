@@ -5,6 +5,7 @@ from sklearn import linear_model
 from scipy import optimize
 
 
+# Utils
 def read_from_file(infile, delim):
     """ Reads csv from file; last col is the target value and return X, y as
     numpy arrays. """
@@ -19,6 +20,23 @@ def read_from_file(infile, delim):
     return Xn, yn
 
 
+# Definitions of cost function (obj), and gradient
+def objective_function(theta, X, y):
+        """ A function to compute the value of objective function
+            for parameter theta.
+        """
+        # m number of training instances
+        m = X.shape[0]
+        jtheta = sum((np.dot(X, theta) - y)**2) / 2.0
+        return jtheta
+
+
+def compute_gradient(theta, X, y):
+    """ Returns the gradient of objection function at theta """
+    grad_theta = np.dot(X.transpose(), (np.dot(X, theta) - y))
+    return grad_theta
+
+
 # Andrew Ng's lectures
 def linreg_closedform(X, y):
     """ Computes the parameters theta by fitting a hyperplane to the data.  """
@@ -26,12 +44,36 @@ def linreg_closedform(X, y):
     theta = np.dot(xtx_inv, np.dot(X.transpose(), y))
     return theta
 
+
+def linreg_batch_grad(X, y, alpha=.5, err=1e-5):
+    """ linear regression: batch gradient method """
+    m = X.shape[0]
+    n = X.shape[1]
+    theta = np.zeros(n)
+
+    jtheta_prev = objective_function(theta, X, y)
+    gradient = compute_gradient(theta, X, y)
+    theta = theta - alpha*gradient
+    jtheta_new = objective_function(theta, X, y)
+
+    while(abs(jtheta_new - jtheta_prev) > err):
+        gradient = compute_gradient(theta, X, y)
+        jtheta_prev = jtheta_new
+        theta = theta - alpha*gradient
+        jtheta_new = objective_function(theta, X, y)
+
+    return theta
+
+
 def linreg_stochastic_grad(X, y, alpha=.5):
     """ Performs linear regression by stochastic gradient method """
     m = X.shape[0]
     n = X.shape[1]
     theta = np.zeros(n)
-
+    for i in range(m):
+        delta = alpha * (np.dot(theta.transpose(), X[i,:]) -y[i]) * X[i,:]
+        theta = theta - delta
+    return theta
 
 
 
@@ -45,7 +87,7 @@ def linreg_scikit(X, y):
 
 
 # Using scipy optimization methods
-def linreg_gradient(X, y, optmethod='ncg'):
+def linreg_scipy_opt(X, y, optmethod='ncg'):
     """ Gradient method """
     all_opt_methods = { 'cg': optimize.fmin_cg,
                     'ncg': optimize.fmin_ncg,
@@ -55,21 +97,22 @@ def linreg_gradient(X, y, optmethod='ncg'):
 
     chosen_opt_method = all_opt_methods[optmethod]
 
-    def objective_function(theta, X, y):
-        """ A function to compute the value of objective function
-            for parameter theta.
-        """
-        # m number of training instances
-        m = X.shape[0]
-        jtheta = sum((np.dot(X, theta) - y)**2) / 2.0
-        return jtheta
-
-    def gradient(theta, X, y):
-        """ Returns the gradient of objection function at theta """
-        grad_theta = np.dot(X.transpose(), (np.dot(X, theta) - y))
-        return grad_theta
-
     n = X.shape[1]
     theta = np.zeros(n)
-    result = chosen_opt_method(objective_function, theta, gradient, args=(X, y))
+    result = chosen_opt_method(objective_function, theta, compute_gradient, args=(X, y))
     return result
+
+
+def demo(trainfile, delim=','):
+    X, y = read_from_file(trainfile, delim)
+
+    print 'Closed form:'
+    print linreg_closedform(X, y)
+    print 'Batch gradient:'
+    print linreg_batch_grad(X, y)
+    print 'Stochastic gradient:'
+    print linreg_stochastic_grad(X, y)
+    print 'Scikit '
+    print linreg_scikit(X, y)
+    print 'scipy with bfgs'
+    print linreg_scipy_opt(X, y, 'bfgs')
