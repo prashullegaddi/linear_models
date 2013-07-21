@@ -2,6 +2,8 @@ import numpy as np
 import numpy.linalg as la
 
 from sklearn import linear_model
+from sklearn.metrics import mean_squared_error
+from sklearn.ensemble import GradientBoostingRegressor
 from scipy import optimize
 
 
@@ -14,26 +16,28 @@ def read_from_file(infile, delim):
     y = [a[-1] for a in data]
 
     ones_to_stack = np.ones((len(y), 1))
-    Xn = np.concatenate((ones_to_stack, np.array(X)), axis=1)
-    yn = np.array(y)
+    Xn = np.concatenate((ones_to_stack, np.array(X, dtype=float)), axis=1)
+    yn = np.array(y, dtype=float)
 
     return Xn, yn
 
 
 # Definitions of cost function (obj), and gradient
 def objective_function(theta, X, y):
-        """ A function to compute the value of objective function
-            for parameter theta.
-        """
-        # m number of training instances
-        m = X.shape[0]
-        jtheta = sum((np.dot(X, theta) - y)**2) / 2.0
-        return jtheta
+    """ A function to compute the value of objective function
+        for parameter theta.
+    """
+    # m number of training instances
+    m = X.shape[0]
+    jtheta = sum((np.dot(X, theta) - y)**2) / (2.0*m)
+    return jtheta
 
 
 def compute_gradient(theta, X, y):
     """ Returns the gradient of objection function at theta """
-    grad_theta = np.dot(X.transpose(), (np.dot(X, theta) - y))
+    m = X.shape[0]
+    grad_theta = np.dot(X.transpose(), (np.dot(X, theta) - y)) / m
+    #print theta, grad_theta, objective_function(theta, X, y)
     return grad_theta
 
 
@@ -45,27 +49,22 @@ def linreg_closedform(X, y):
     return theta
 
 
-def linreg_batch_grad(X, y, alpha=.5, err=1e-5):
+def linreg_batch_grad(X, y, alpha=.01, num_iter=1000):
     """ linear regression: batch gradient method """
     m = X.shape[0]
     n = X.shape[1]
-    theta = np.zeros(n)
+    theta = np.zeros(n, dtype=float)
 
-    jtheta_prev = objective_function(theta, X, y)
-    gradient = compute_gradient(theta, X, y)
-    theta = theta - alpha*gradient
-    jtheta_new = objective_function(theta, X, y)
-
-    while(abs(jtheta_new - jtheta_prev) > err):
+    for itr in range(num_iter):
+        cost = objective_function(theta, X, y)
         gradient = compute_gradient(theta, X, y)
-        jtheta_prev = jtheta_new
-        theta = theta - alpha*gradient
-        jtheta_new = objective_function(theta, X, y)
+        theta = theta - alpha * gradient
+        print itr, theta, gradient
 
     return theta
 
 
-def linreg_stochastic_grad(X, y, alpha=.5):
+def linreg_stochastic_grad(X, y, alpha=.01):
     """ Performs linear regression by stochastic gradient method """
     m = X.shape[0]
     n = X.shape[1]
@@ -76,14 +75,26 @@ def linreg_stochastic_grad(X, y, alpha=.5):
     return theta
 
 
-
 # Scikit-learn
 def linreg_scikit(X, y):
     """ Ordinary least squares regression from scikit-learn """
     lr = linear_model.LinearRegression()
     lr.fit(X, y)
-    return lr.intercept_, lr.coef_
+    theta = lr.coef_.tolist()[1:]
+    theta.insert(0, lr.intercept_)
+    return theta
 
+
+def linreg_gbrt(X, y):
+    """ Gradient boosted regression decision trees """
+    gbrt = GradientBoostingRegressor(n_estimators=100, learning_rate=1.0,
+                max_depth=1, random_state=0, loss='ls')
+    gbrt.fit(X, y)
+    return gbrt
+
+
+def linreg_gbrt_predict(gbrt, X):
+    return gbrt.predict(X)
 
 
 # Using scipy optimization methods
@@ -99,20 +110,29 @@ def linreg_scipy_opt(X, y, optmethod='ncg'):
 
     n = X.shape[1]
     theta = np.zeros(n)
-    result = chosen_opt_method(objective_function, theta, compute_gradient, args=(X, y))
+    result = chosen_opt_method(objective_function, theta,
+                    compute_gradient, args=(X, y))
     return result
+
+
+def predict(theta, X):
+    return np.dot(X, theta)
 
 
 def demo(trainfile, delim=','):
     X, y = read_from_file(trainfile, delim)
 
-    print 'Closed form:'
-    print linreg_closedform(X, y)
-    print 'Batch gradient:'
-    print linreg_batch_grad(X, y)
-    print 'Stochastic gradient:'
-    print linreg_stochastic_grad(X, y)
+##    print 'Closed form:'
+##    print linreg_closedform(X, y)
+##    print 'Batch gradient:'
+##    print linreg_batch_grad(X, y)
+##    print 'Stochastic gradient:'
+##    print linreg_stochastic_grad(X, y)
     print 'Scikit '
-    print linreg_scikit(X, y)
-    print 'scipy with bfgs'
-    print linreg_scipy_opt(X, y, 'bfgs')
+    theta1 = linreg_scikit(X, y)
+    print 'NormalLR: MSE on train: ', mean_squared_error(y, predict(theta1, X))
+    print 'GBRT'
+    gbrt_model = linreg_gbrt(X, y)
+    print 'GBRT: MSE on train: ', mean_squared_error(y, linreg_gbrt_predict(gbrt_model, X))
+
+
