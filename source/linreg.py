@@ -136,3 +136,35 @@ def demo(trainfile, delim=','):
     print 'GBRT: MSE on train: ', mean_squared_error(y, linreg_gbrt_predict(gbrt_model, X))
 
 
+def lowess(X, y):
+    pass
+
+
+def compare():
+    """ Different regression algorithms compared """
+    from sklearn import datasets
+    from sklearn import linear_model
+    from sklearn.metrics import mean_squared_error
+
+    boston_data = datasets.load_boston()
+    X, y = boston_data.data, boston_data.target
+    linreg = linear_model.LinearRegression()
+    lr_model = linreg.fit(X ,y)
+    lr_mse = mean_squared_error(lr_model.predict(X), y)
+    print 'Linear regression:', lr_mse
+
+    ridge = linear_model.Ridge()
+    ridge_model = ridge.fit(X, y)
+    ridge_mse = mean_squared_error(ridge.predict(X), y)
+    print 'Ridge regression:', ridge_mse
+
+    lasso = linear_model.Lasso()
+    lasso_model = lasso.fit(X, y)
+    lasso_mse = mean_squared_error(lasso_model.predict(X), y)
+    print 'Lasso regression:', lasso_mse
+
+
+if __name__ == '__main__':
+    demo('ex1data1.txt')
+
+
